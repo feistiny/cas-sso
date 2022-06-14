@@ -8,11 +8,17 @@
 
 namespace App\Helper;
 
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Contract\ResponseInterface;
+
 /**
  * url跳转类.
  */
 abstract class AbstractUrlRedirector
 {
+    #[Inject]
+    protected ResponseInterface $response;
+    
     /**
      * 携带参数跳转到对应的地址.
      */

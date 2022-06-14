@@ -8,6 +8,8 @@
 
 namespace App\Helper;
 
+use Hyperf\HttpServer\Response;
+
 class UrlPostRedirector extends AbstractUrlRedirector
 {
     /**
@@ -30,7 +32,10 @@ HTML;
 </body>
 </html>
 HTML;
-        
+
+        // return $this->response->withAddedHeader('content-type', 'text/html; charset=utf-8')
+        //     ->withBody('asdf');
+        header("Content-type:text/html;charset=utf-8");
         return $html;
     }
 }
