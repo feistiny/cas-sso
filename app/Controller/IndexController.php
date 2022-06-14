@@ -24,10 +24,9 @@ class IndexController extends AbstractController
         $user = $this->request->input('user', 'Hyperf');
         $method = $this->request->getMethod();
 
-        $this->session->set('asdf', 23);
-
         return [
-            'session' => $this->session->get('asdf'),
+            'input' => $this->request->all(),
+            'session' => $this->session->all(),
             'method'  => $method,
             'message' => "Hello2 {$user}.",
         ];
@@ -35,7 +34,7 @@ class IndexController extends AbstractController
 
     public function url() {
         $urlRedirector = $this->getRedirector();
-        return $urlRedirector->urlRedirect('adsf?b=1', [
+        return $urlRedirector->urlRedirect('http://101.43.82.144:9500', [
                 'a' => 1,
                 'c' => 3,
                 'url' => 'http://asdfasdfasd.com/asdfas',

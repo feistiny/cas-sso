@@ -8,12 +8,14 @@
 
 namespace App\Helper;
 
+use Hyperf\HttpMessage\Stream\SwooleStream;
 use Hyperf\HttpServer\Response;
 
 class UrlPostRedirector extends AbstractUrlRedirector
 {
     /**
      * 通过返回html表单,js用post提交form,不暴露参数.
+     * @return Response
      */
     public function urlRedirect($url, $data = []) {
         $input_str = '';
@@ -25,17 +27,18 @@ HTML;
 
         $html = <<<HTML
 <html>
-<body onload='document.forms["form"].submit()'>
-<form>
+<body>
+<form name="submitForm" action="$url" method="post">
 {$input_str}
 </form>
 </body>
+<script>window.document.submitForm.submit();</script>
 </html>
 HTML;
 
-        // return $this->response->withAddedHeader('content-type', 'text/html; charset=utf-8')
-        //     ->withBody('asdf');
-        header("Content-type:text/html;charset=utf-8");
-        return $html;
+        $response = $this->response
+            ->withAddedHeader('content-type', 'text/html; charset=utf-8')
+            ->withBody(new SwooleStream($html));
+        return $response;
     }
 }

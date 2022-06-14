@@ -10,8 +10,15 @@ namespace App\Helper;
 
 class UrlGetRedirector extends AbstractUrlRedirector
 {
+    /**
+     * 直接通过url的get方式跳转, 重要参数推荐用post的表单方法.
+     * @param $url
+     * @param array $data
+     * @return \Hyperf\HttpServer\Response
+     */
     public function urlRedirect($url, $data = []) {
         $char = strpos($url, '?') === false ? '?' : '&';
-        return $url . $char . http_build_query($data);
+        $redirect_url = $url . $char . http_build_query($data);
+        return $this->response->redirect($redirect_url);
     }
 }

@@ -21,6 +21,7 @@ abstract class AbstractUrlRedirector
     
     /**
      * 携带参数跳转到对应的地址.
+     * @return \Hyperf\HttpServer\Response
      */
     abstract public function urlRedirect($url, $data = []);
 }
