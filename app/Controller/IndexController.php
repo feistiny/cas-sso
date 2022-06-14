@@ -11,23 +11,34 @@ declare(strict_types=1);
  */
 namespace App\Controller;
 
+use App\Helper\AbstractUrlRedirector;
+use App\Helper\UrlGetRedirector;
+use Hyperf\Di\Annotation\Inject;
+use Hyperf\Contract\SessionInterface;
+use Hyperf\HttpServer\Annotation\AutoController;
+
+#[AutoController]
 class IndexController extends AbstractController
 {
-    /**
-     * @var \Hyperf\Contract\SessionInterface
-     */
-    private $session;
-    
-    public function index()
-    {
+    public function index() {
         $user = $this->request->input('user', 'Hyperf');
         $method = $this->request->getMethod();
-        
-        
+
+        $this->session->set('asdf', 23);
 
         return [
-            'method' => $method,
+            'session' => $this->session->get('asdf'),
+            'method'  => $method,
             'message' => "Hello2 {$user}.",
         ];
+    }
+
+    public function url() {
+        $urlRedirector = $this->getRedirector();
+        return $urlRedirector->urlRedirect('adsf?b=1', [
+                'a' => 1,
+                'c' => 3,
+                'url' => 'http://asdfasdfasd.com/asdfas',
+            ]); 
     }
 }
