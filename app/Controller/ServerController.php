@@ -23,6 +23,16 @@ use Hyperf\HttpServer\Annotation\AutoController;
 #[AutoController]
 class ServerController extends AbstractController
 {
+    public function cas_login_form() {
+        $data = $this->validReq($this->request->all(), [
+            'redirect_url' => 'required',
+            'service_id'   => 'required',
+        ]);
+        return $this->render('server_login.tpl', [
+            'service_id'   => $data['service_id'],
+            'redirect_url' => $data['redirect_url'],
+        ]);
+    }
     /**
      * 注册/登录.
      */

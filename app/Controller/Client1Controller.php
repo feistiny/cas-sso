@@ -25,6 +25,21 @@ class Client1Controller extends ClientController
 {
     protected $service_id = 1;
 
+    /**
+     * 获取完整的跳转地址.
+     */
+    private function getClientUrl($sub_url) {
+        return "https://9501.lzf.itbtx.cn/$sub_url";
+    }
+
+    public function index() {
+        return $this->render('client_index.tpl', [
+            'title' => 'client1的首页',
+            'service_id' => $this->service_id,
+            'redirect_url' => $this->getClientUrl("client1/auth_page"),
+        ]);
+    }
+
     #[Middleware(Client1AuthMiddleware::class)]
     /**
      * 需要登录的页面.

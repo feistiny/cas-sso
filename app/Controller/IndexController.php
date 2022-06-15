@@ -22,20 +22,6 @@ use Hyperf\View\RenderInterface;
 #[AutoController]
 class IndexController extends AbstractController
 {
-    public function index() {
-        $user = $this->request->input('user', 'Hyperf');
-        $method = $this->request->getMethod();
-        $this->session->set('a', $this->session->get('a')??0 +1);
-
-        return [
-            'session_a' => $this->session->get('a'),
-            'input' => $this->request->all(),
-            'session_id' => $this->session->getId(),
-            'session' => $this->session->all(),
-            'method'  => $method,
-            'message' => "Hello2 {$user}.",
-        ];
-    }
 
     public function url() {
         $urlRedirector = $this->getUrlRedirector();
@@ -63,6 +49,6 @@ class IndexController extends AbstractController
     }
 
     public function view(RenderInterface $render) {
-        return $render->render('test'); 
+        return $render->render('test.tpl'); 
     }
 }

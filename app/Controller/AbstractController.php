@@ -20,6 +20,7 @@ use Hyperf\Contract\SessionInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
+use Hyperf\View\RenderInterface;
 use Psr\Container\ContainerInterface;
 
 abstract class AbstractController
@@ -39,4 +40,11 @@ abstract class AbstractController
     
     #[Inject]
     protected SessionInterface $session;
+    
+    #[Inject]
+    protected RenderInterface $render;
+
+    protected function render($template, $data = [], $config = []) {
+        return $this->render->render($template, $data, $config); 
+    }
 }
