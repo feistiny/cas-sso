@@ -13,6 +13,7 @@ namespace App\Controller;
 
 use App\Helper\AbstractUrlRedirector;
 use App\Helper\UrlGetRedirector;
+use App\Model\TsUser;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Annotation\AutoController;
@@ -33,11 +34,27 @@ class IndexController extends AbstractController
     }
 
     public function url() {
-        $urlRedirector = $this->getRedirector();
-        return $urlRedirector->urlRedirect('http://101.43.82.144:9500', [
+        $urlRedirector = $this->getUrlRedirector();
+        return $urlRedirector->redirect('http://101.43.82.144:9500', [
                 'a' => 1,
                 'c' => 3,
                 'url' => 'http://asdfasdfasd.com/asdfas',
             ]); 
+    }
+
+    public function valid() {
+        ValidatorTrait::validReq([
+        ], [
+            'a' => 'required',
+        ], [], [
+            'a' => 'a的字段名',
+        ]);
+    }
+
+    public function db() {
+        TsUser::create([
+        ]);
+        $users = TsUser::all();
+        return $users;
     }
 }

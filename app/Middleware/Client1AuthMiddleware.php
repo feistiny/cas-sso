@@ -8,13 +8,18 @@
 
 namespace App\Middleware;
 
+use App\Exception\CASAuthException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 class Client1AuthMiddleware extends AbstractMiddleware
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) {
-        return $this->response->raw('asdf');
-        return $handler->handle($request);
+        try {
+            return $handler->handle($request);
+        } catch (CASAuthException $e) {
+            $redirector = $this->getUrlRedirector();
+            return $redirector->CASRedirect();
+        }
     }
 }

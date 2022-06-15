@@ -13,6 +13,9 @@ namespace App\Controller;
 
 use App\Helper\UrlGetRedirector;
 use App\Helper\UrlPostRedirector;
+use App\Helper\UrlRedirectorTrait;
+use App\Trait\UserSessionTrait;
+use App\Trait\ValidatorTrait;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
@@ -21,6 +24,10 @@ use Psr\Container\ContainerInterface;
 
 abstract class AbstractController
 {
+    use UserSessionTrait;
+    use UrlRedirectorTrait;
+    use ValidatorTrait;
+
     #[Inject]
     protected ContainerInterface $container;
 
@@ -32,16 +39,4 @@ abstract class AbstractController
     
     #[Inject]
     protected SessionInterface $session;
-    
-    /**
-     * 获取url重定向实例, 可根据请求参数返回不同的实现方式. 
-     */
-    protected function getRedirector() {
-        $redirect_type = $this->request->input('redirect_type', 'get');
-        $rtn = make(UrlGetRedirector::class);
-        if ($redirect_type == 'post') {
-            $rtn = make(UrlPostRedirector::class);
-        }
-        return $rtn;
-    }
 }

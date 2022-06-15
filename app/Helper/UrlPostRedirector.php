@@ -17,7 +17,7 @@ class UrlPostRedirector extends AbstractUrlRedirector
      * 通过返回html表单,js用post提交form,不暴露参数.
      * @return Response
      */
-    public function urlRedirect($url, $data = []) {
+    public function redirect($url, $data = []) {
         $input_str = '';
         foreach ($data as $name => $value) {
             $input_str .= <<<HTML

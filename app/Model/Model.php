@@ -11,8 +11,22 @@ declare(strict_types=1);
  */
 namespace App\Model;
 
+use App\Helper\ModelValidator;
+use App\Trait\ValidatorTrait;
 use Hyperf\DbConnection\Model\Model as BaseModel;
 
-abstract class Model extends BaseModel
+abstract class AbstractModel extends BaseModel
 {
+    use ValidatorTrait;
+    /**
+     * 验证模型属性.
+     */
+    public static function validAttrs($data, $if_rules) {
+        $validator = new ModelValidator($if_rules);
+        $validator->setAttrsMustRulesFromModel(static::getMustValidRules());
+        $merge_rules = $validator->getValidRules();
+        $model_name = class_basename(static::class);
+        return $this->validData("模型 $model_name 的属性验证", $data, $merge_rules, [], []);
+        return $data;
+    }
 }

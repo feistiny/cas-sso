@@ -21,7 +21,12 @@ class ServerController extends AbstractController
     /**
      * 注册/登录.
      */
-    public function index() {
+    public function cas_auth() {
+        $data = ValidatorTrait::validReq($this->request->all(), [
+            'username' => 'required',
+            'password' => 'required',
+        ]);
+        return '123';
         return [];
     }
     /**

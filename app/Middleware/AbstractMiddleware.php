@@ -8,6 +8,10 @@
 
 namespace App\Middleware;
 
+use App\Helper\UrlRedirectorTrait;
+use App\Trait\UserSessionTrait;
+use App\Trait\ValidatorTrait;
+use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface as HttpResponse;
 use Psr\Container\ContainerInterface;
 use Hyperf\Di\Annotation\Inject;
@@ -18,13 +22,17 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 abstract class AbstractMiddleware implements MiddlewareInterface
 {
+    use ValidatorTrait;
+    use UserSessionTrait;
+    use UrlRedirectorTrait;
+    
     #[Inject]
     protected ContainerInterface $container;
     #[Inject]
     protected RequestInterface $request;
     #[Inject]
     protected HttpResponse $response;
-    
+
     public function getMiddleware(): callable {
         return function ($request, $handler) {
             return $this->process($request, $handler);

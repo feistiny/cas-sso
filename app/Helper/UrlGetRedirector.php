@@ -16,9 +16,13 @@ class UrlGetRedirector extends AbstractUrlRedirector
      * @param array $data
      * @return \Hyperf\HttpServer\Response
      */
-    public function urlRedirect($url, $data = []) {
-        $char = strpos($url, '?') === false ? '?' : '&';
-        $redirect_url = $url . $char . http_build_query($data);
+    public function redirect($url, $data = []) {
+        $redirect_url = $url;
+        var_dump(func_get_args());
+        if (! empty($data)) {
+            $char = strpos($url, '?') === false ? '?' : '&';
+            $redirect_url = $url . $char . http_build_query($data);
+        }
         return $this->response->redirect($redirect_url);
     }
 }

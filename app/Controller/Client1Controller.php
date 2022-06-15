@@ -12,8 +12,11 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Middleware\Client1AuthMiddleware;
+use App\Trait\ValidatorTrait;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\AutoController;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 #[AutoController]
 class Client1Controller extends AbstractController
@@ -30,6 +33,7 @@ class Client1Controller extends AbstractController
      * 需要登录的页面.
      */
     public function auth_page() {
+        $uid = $this->getUid();
         return 'auth_page';
     }
 
