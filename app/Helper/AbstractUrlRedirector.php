@@ -36,12 +36,20 @@ abstract class AbstractUrlRedirector
         $url = config('cas.cas_auto_login_url');
         $username = $this->request->input('username');
         $password = $this->request->input('password');
+        $redirect_url = $this->request->input('redirect_url');
+        $service_id = $this->request->input('service_id');
         $auth_data = [];
         if (! empty($username)) {
             $auth_data['username'] = $username;
         }
         if (! empty($password)) {
             $auth_data['password'] = $password;
+        }
+        if (! empty($redirect_url)) {
+            $auth_data['redirect_url'] = $redirect_url;
+        }
+        if (! empty($service_id)) {
+            $auth_data['service_id'] = $service_id;
         }
         return $this->redirect($url, $auth_data);
     }

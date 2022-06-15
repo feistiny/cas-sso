@@ -22,6 +22,9 @@ trait UserSessionTrait
      */
     public function getUid() {
         $uid = $this->session->get('uid');
-        throw new CASAuthException("CAS没有授权");
+        if (empty($uid)) {
+            throw new CASAuthException("CAS没有授权");
+        }
+        return $uid;
     }
 }

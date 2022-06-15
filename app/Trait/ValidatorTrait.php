@@ -19,8 +19,8 @@ trait ValidatorTrait
      * @param array $attrs
      * @return array
      */
-    public static function validReq(array $data, array $rules, array $msgs = [], array $attrs = []) {
-        return static::validData('验证请求', $data, $rules, $msgs, $attrs);
+    public function validReq(array $data, array $rules, array $msgs = [], array $attrs = []) {
+        return $this->validData('验证请求', $data, $rules, $msgs, $attrs);
     }
 
     /**

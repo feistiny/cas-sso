@@ -17,6 +17,7 @@ use App\Model\TsUser;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Annotation\AutoController;
+use Hyperf\View\RenderInterface;
 
 #[AutoController]
 class IndexController extends AbstractController
@@ -24,9 +25,12 @@ class IndexController extends AbstractController
     public function index() {
         $user = $this->request->input('user', 'Hyperf');
         $method = $this->request->getMethod();
+        $this->session->set('a', $this->session->get('a')??0 +1);
 
         return [
+            'session_a' => $this->session->get('a'),
             'input' => $this->request->all(),
+            'session_id' => $this->session->getId(),
             'session' => $this->session->all(),
             'method'  => $method,
             'message' => "Hello2 {$user}.",
@@ -43,7 +47,7 @@ class IndexController extends AbstractController
     }
 
     public function valid() {
-        ValidatorTrait::validReq([
+        $this->validReq([
         ], [
             'a' => 'required',
         ], [], [
@@ -56,5 +60,9 @@ class IndexController extends AbstractController
         ]);
         $users = TsUser::all();
         return $users;
+    }
+
+    public function view(RenderInterface $render) {
+        return $render->render('test'); 
     }
 }

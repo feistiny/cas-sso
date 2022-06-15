@@ -12,7 +12,6 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Middleware\Client1AuthMiddleware;
-use App\Model\Tc1Info;
 use App\Model\Tc2Info;
 use App\Trait\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
@@ -21,9 +20,9 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 #[AutoController]
-class Client1Controller extends ClientController
+class Client2Controller extends ClientController
 {
-    protected $service_id = 1;
+    protected $service_id = 2;
 
     #[Middleware(Client1AuthMiddleware::class)]
     /**
@@ -45,21 +44,14 @@ class Client1Controller extends ClientController
         ]);
         $user_info = $this->get_cas_userinfo($data['st']);
         $this->session->set('uid', $user_info['uid']);
-        Tc1Info::updateOrCreate([
+        Tc2Info::updateOrCreate([
             'info_id'    => $user_info['uid'],
         ], [
             'username'   => $user_info['username'],
             'session_id' => $this->session->getId(),
-        ]);
+        ]);;
         // 保存用户信息
         return $this->getUrlRedirector()->redirect($data['redirect_url']);
-    }
-
-
-    /**
-     * 异步退出登录.
-     */
-    public function async_logout() {
     }
 
     /**
@@ -67,7 +59,8 @@ class Client1Controller extends ClientController
      */
     public function logout() {
         $this->session->clear();
-        return $this->getUrlRedirector()->redirect(config('cas.cas_logout_url'));
+        file_get_contents(config('cas.cas_userinfo_url') . "?service_id={$this->service_id}");
+        return $this->getUrlRedirector()->redirect('/');
     }
     /**
      * 根据st去cas换取用户信息.
@@ -78,5 +71,4 @@ class Client1Controller extends ClientController
         $user_info = json_decode($res, true);
         return $user_info;
     }
-
 }

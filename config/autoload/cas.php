@@ -8,5 +8,7 @@
  */
 
 return [
-    'cas_auto_login_url' => 'http://101.43.82.144:9500', 
+    'cas_auto_login_url' => 'https://9500.lzf.itbtx.cn/server/cas_auth', 
+    'cas_userinfo_url' => 'https://9500.lzf.itbtx.cn/server/user_info', 
+    'cas_logout_url' => 'https://9500.lzf.itbtx.cn/server/cas_logout', 
 ];

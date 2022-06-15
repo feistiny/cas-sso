@@ -18,7 +18,6 @@ class UrlGetRedirector extends AbstractUrlRedirector
      */
     public function redirect($url, $data = []) {
         $redirect_url = $url;
-        var_dump(func_get_args());
         if (! empty($data)) {
             $char = strpos($url, '?') === false ? '?' : '&';
             $redirect_url = $url . $char . http_build_query($data);

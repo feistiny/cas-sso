@@ -16,16 +16,21 @@ class TsUser extends AbstractModel
      * @var string
      */
     protected $table = 'ts_user';
+    protected $primaryKey = 'uid';
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = [];
+    protected $fillable = ['username', 'password',];
     /**
      * The attributes that should be cast to native types.
      *
      * @var array
      */
     protected $casts = ['uid' => 'integer'];
+
+    public function tgt() {
+        $this->hasOne(TsTgt::class, 'uid', 'uid');
+    }
 }
