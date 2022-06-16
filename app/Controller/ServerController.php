@@ -99,7 +99,7 @@ class ServerController extends AbstractController
 
             $st = $this->getServiceTicket($tgt->tgt_id, $user->uid, $data['service_id']);
             $st->update([
-                'used' => $this->getCasMaxUseNum(),
+                'used' => $this->getCasMaxUseNum() - 1, // 本次算一次
             ]);
         }
 
