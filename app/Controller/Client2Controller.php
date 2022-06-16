@@ -11,8 +11,11 @@ declare(strict_types=1);
  */
 namespace App\Controller;
 
-use App\Middleware\Client1AuthMiddleware;
+use App\Middleware\ClientAuthMiddleware;
+use App\Model\Tc1Info;
+use App\Model\Tc1ServiceTicket;
 use App\Model\Tc2Info;
+use App\Model\Tc2ServiceTicket;
 use App\Trait\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\AutoController;
@@ -20,59 +23,36 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 #[AutoController]
-class Client2Controller extends AbstractController
+class Client2Controller extends ClientController
 {
     protected $service_id = 2;
 
     protected function getBaseUrl() {
-        return 'https://9502.lzf.itbtx.cn/';
+        return 'https://9502.lzf.itbtx.cn/client2/';
+    }
+    protected function getClientTitle() {
+        return 'client2';
     }
 
-    #[Middleware(Client1AuthMiddleware::class)]
+    #[Middleware(ClientAuthMiddleware::class)]
     /**
      * 需要登录的页面.
      */
     public function auth_page() {
-        return [
-            'auth_page',
-            'uid' => $this->mustGetUid(),
-        ];
-    }
-    /**
-     * cas返回时,统一
-     */
-    public function cas_back() {
-        $data = $this->validReq($this->request->all(), [
-            'st'           => 'required',
-            'redirect_url' => 'required',
-        ]);
-        $user_info = $this->get_cas_userinfo($data['st']);
-        $this->session->set('uid', $user_info['uid']);
-        Tc2Info::updateOrCreate([
-            'info_id'    => $user_info['uid'],
-        ], [
-            'username'   => $user_info['username'],
-            'session_id' => $this->session->getId(),
-        ]);;
-        // 保存用户信息
-        return $this->getUrlRedirector()->redirect($data['redirect_url']);
+        return $this->do_auth_page();
     }
 
-    /**
-     * 退出登录.
-     */
-    public function logout() {
-        $this->session->clear();
-        file_get_contents(config('cas.cas_userinfo_url') . "?service_id={$this->service_id}");
-        return $this->getUrlRedirector()->redirect('/');
-    }
-    /**
-     * 根据st去cas换取用户信息.
-     */
-    private function get_cas_userinfo($st) {
-        $cas_url = config('cas.cas_userinfo_url');
-        $res = file_get_contents($cas_url . "?service_id={$this->service_id}&st=$st");
-        $user_info = json_decode($res, true);
-        return $user_info;
+    protected function cas_back_saveinfo($info) {
+        Tc2Info::updateOrCreate([
+            'info_id' => $info['uid'],
+        ], [
+            'username' => $info['username'],
+        ]);
+        Tc2ServiceTicket::updateOrCreate([
+            'st_id' => $info['st'],
+        ], [
+            'validate'   => 1,
+            'session_id' => $this->session->getId(),
+        ]);
     }
 }

@@ -66,8 +66,13 @@ class ServerController extends AbstractController
      */
     public function cas_auth() {
         if ($tgt_id = $this->session->get('tgt_id')) {
-            $this->setServiceId($this->mustGetCacheServiceId());
-            $this->setRedirectUrl($this->mustGetCacheRedirectUrl());
+            $data = $this->validReq($this->request->all(), [
+                'redirect_url' => 'required',
+                'service_id'   => 'required',
+            ]);
+            // 这里应该从浏览器获取地址
+            $this->setRedirectUrl($data['redirect_url']);
+            $this->setServiceId($data['service_id']);
             // 有全局会话
             // 其他应用来了, 直接登录
             $tgt = TsTgt::find($tgt_id);
@@ -85,8 +90,8 @@ class ServerController extends AbstractController
                 $this->setCacheRedirectUrl($data['redirect_url']);
                 return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'));
             } else {
-                $this->setServiceId($this->mustGetCacheServiceId());
-                $this->setRedirectUrl($this->mustGetCacheRedirectUrl());
+                $this->setServiceId($this->mustPullCacheServiceId());
+                $this->setRedirectUrl($this->mustPullCacheRedirectUrl());
             }
 
             $data = $this->validReq($this->request->all(), [

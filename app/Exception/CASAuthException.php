@@ -10,4 +10,19 @@ namespace App\Exception;
 
 class CASAuthException extends BusinessException
 {
+    private $server_id;
+    /**
+     * 设置service_id.
+     * @return self
+     */
+    public function withServiceId($service_id) {
+        $this->server_id = $service_id;
+        return $this;
+    }
+    /**
+     * 获取service_id.
+     */
+    public function getServiceId() {
+        return $this->server_id;
+    }
 }

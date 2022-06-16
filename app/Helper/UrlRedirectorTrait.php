@@ -23,4 +23,20 @@ trait UrlRedirectorTrait
         }
         return $rtn;
     }
+
+    /**
+     * 获取get方法的重定向器.
+     * @return \App\Helper\UrlGetRedirector
+     */
+    protected function getUrlGetRedirector() {
+        return make(UrlGetRedirector::class);
+    }
+
+    /**
+     * 获取post方法的重定向器.
+     * @return \App\Helper\UrlPostRedirector
+     */
+    protected function getUrlPostRedirector() {
+        return make(UrlPostRedirector::class);
+    }
 }

@@ -12,7 +12,7 @@ use App\Exception\CASAuthException;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-class Client1AuthMiddleware extends AbstractMiddleware
+class ClientAuthMiddleware extends AbstractMiddleware
 {
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler) {
         try {

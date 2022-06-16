@@ -10,5 +10,6 @@
 return [
     'cas_auto_login_url' => 'https://9500.lzf.itbtx.cn/server/cas_auth', 
     'cas_userinfo_url' => 'https://9500.lzf.itbtx.cn/server/user_info', 
-    'cas_logout_url' => 'https://9500.lzf.itbtx.cn/server/cas_logout', 
+    'cas_logout_url' => 'https://9500.lzf.itbtx.cn/server/cas_logout',
+    'client1_index_url' => 'https://9501.lzf.itbtx.cn/client1/index',
 ];

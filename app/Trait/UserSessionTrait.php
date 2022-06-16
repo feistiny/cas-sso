@@ -24,7 +24,9 @@ trait UserSessionTrait
     public function mustGetUid() {
         $uid = $this->session->get('uid');
         if (empty($uid)) {
-            throw new CASAuthException("CAS没有授权");
+            $err = new CASAuthException("CAS没有授权");
+            $err->withServiceId($this->mustGetCacheServiceId());
+            throw $err;
         }
         return $uid;
     }
@@ -50,7 +52,19 @@ trait UserSessionTrait
     public function mustGetCacheServiceId() {
         $service_id = $this->session->get('service_id');
         if (empty($service_id)) {
-            throw new BusinessException("强制获取service_id失败");
+            throw new BusinessException("强制获取缓存的service_id失败");
+        }
+        return $service_id;
+    }
+    /**
+     * 获取service_id,然后删除.
+     * @return int
+     */
+    public function mustPullCacheServiceId() {
+        $service_id = $this->session->get('service_id');
+        $this->session->forget('service_id');
+        if (empty($service_id)) {
+            throw new BusinessException("强制拉取缓存的service_id失败");
         }
         return $service_id;
     }
@@ -68,7 +82,19 @@ trait UserSessionTrait
     public function mustGetCacheRedirectUrl() {
         $redirect_url = $this->session->get('redirect_url');
         if (empty($redirect_url)) {
-            throw new BusinessException("强制获取redirect_url失败");
+            throw new BusinessException("强制获取缓存的redirect_url失败");
+        }
+        return $redirect_url;
+    }
+    /**
+     * 获取redirect_url,然后删除.
+     * @return int
+     */
+    public function mustPullCacheRedirectUrl() {
+        $redirect_url = $this->session->get('redirect_url');
+        $this->session->forget('redirect_url');
+        if (empty($redirect_url)) {
+            throw new BusinessException("强制拉取缓存的redirect_url失败");
         }
         return $redirect_url;
     }

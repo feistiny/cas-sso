@@ -8,6 +8,7 @@
 
 namespace App\Helper;
 
+use App\Trait\UserSessionTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -17,6 +18,8 @@ use Hyperf\HttpServer\Contract\ResponseInterface;
  */
 abstract class AbstractUrlRedirector
 {
+    use UserSessionTrait;
+
     #[Inject]
     protected ResponseInterface $response;
     #[Inject]
@@ -34,15 +37,16 @@ abstract class AbstractUrlRedirector
      */
     public function CASRedirect() {
         $url = config('cas.cas_auto_login_url');
-        $redirect_url = $this->request->input('redirect_url');
-        $service_id = $this->request->input('service_id');
-        $auth_data = [];
-        if (! empty($redirect_url)) {
-            $auth_data['redirect_url'] = $redirect_url;
-        }
-        if (! empty($service_id)) {
-            $auth_data['service_id'] = $service_id;
-        }
+        $service_id = $this->mustGetCacheServiceId();
+        $redirect_url = $this->mustGetCacheRedirectUrl();
+        $auth_data['redirect_url'] = $redirect_url;
+        $auth_data['service_id'] = $service_id;
         return $this->redirect($url, $auth_data);
+    }
+
+    /**
+     * 获取
+     */
+    public function get() {
     }
 }
