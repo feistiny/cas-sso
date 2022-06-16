@@ -38,4 +38,7 @@ class TsTgt extends Model
     public function user() {
         return $this->hasOne(TsUser::class, 'uid', 'uid');
     }
+    public function st() {
+        return $this->hasMany(TsServiceTicket::class, 'tgt_id', 'tgt_id'); 
+    }
 }

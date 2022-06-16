@@ -38,4 +38,8 @@ class TsServiceTicket extends Model
      * @var array
      */
     protected $casts = ['st_id' => 'integer', 'uid' => 'integer', 'tgt_id' => 'integer', 'service_id' => 'integer', 'used' => 'integer', 'validate' => 'integer'];
+
+    public function service() {
+        return $this->hasOne(TsService::class, 'service_id', 'service_id'); 
+    }
 }

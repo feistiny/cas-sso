@@ -15,6 +15,7 @@ use App\Helper\UrlGetRedirector;
 use App\Helper\UrlPostRedirector;
 use App\Helper\UrlRedirectorTrait;
 use App\Trait\UserSessionTrait;
+use App\Trait\UtilTrait;
 use App\Trait\ValidatorTrait;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\Di\Annotation\Inject;

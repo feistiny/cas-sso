@@ -12,10 +12,12 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Exception\BusinessException;
+use App\Exception\CASAuthException;
 use App\Model\TsService;
 use App\Model\TsServiceTicket;
 use App\Model\TsTgt;
 use App\Model\TsUser;
+use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Annotation\AutoController;
@@ -27,52 +29,29 @@ class ServerController extends AbstractController
         return "https://9500.lzf.itbtx.cn/";
     }
 
-    private $__service_id = 0;
-    private function getServiceId() {
-        $service_id = $this->__service_id;
-        if (empty($service_id)) {
-            throw new \App\Exception\BusinessException("service_id强制获取失败");
-        }
-        return $service_id;
-    }
-    private function setServiceId($service_id) {
-        if (empty($service_id)) {
-            throw new BusinessException("不能设置空的service_id");
-        }
-        $this->__service_id = $service_id;
-    }
-    private $__redirect_url;
-    private function getRedirectUrl() {
-        $redirect_url = $this->__redirect_url;
-        if (empty($redirect_url)) {
-            throw new \App\Exception\BusinessException("redirect_url强制获取失败");
-        }
-        return $redirect_url;
-    }
-    private function setRedirectUrl($redirect_url) {
-        if (empty($redirect_url)) {
-            throw new BusinessException("不能设置空的redirect_url");
-        }
-        $this->__redirect_url = $redirect_url;
-    }
-
+    /**
+     * cas登录表单.
+     */
     public function cas_login_form() {
-        $this->mustGetCacheRedirectUrl();
-        $this->mustGetCacheServiceId();
-        return $this->render('server_login.tpl');
+        $data = $this->validReq($this->request->all(), [
+            'redirect_url' => 'required',
+            'service_id'   => 'required',
+        ]);
+        return $this->render('server_login.tpl', [
+            'msg'          => $this->request->input('msg'),
+            'redirect_url' => $data['redirect_url'],
+            'service_id'   => $data['service_id'],
+        ]);
     }
     /**
      * 注册/登录.
      */
     public function cas_auth() {
-        if ($tgt_id = $this->session->get('tgt_id')) {
-            $data = $this->validReq($this->request->all(), [
-                'redirect_url' => 'required',
-                'service_id'   => 'required',
-            ]);
-            // 这里应该从浏览器获取地址
-            $this->setRedirectUrl($data['redirect_url']);
-            $this->setServiceId($data['service_id']);
+        $data = $this->validReq($this->request->all(), [
+            'redirect_url' => 'required',
+            'service_id'   => 'required',
+        ]);
+        if ($tgt_id = $this->session->get('tgt_id') && ! $this->request->input('is_cas_login')) {
             // 有全局会话
             // 其他应用来了, 直接登录
             $tgt = TsTgt::find($tgt_id);
@@ -80,29 +59,31 @@ class ServerController extends AbstractController
                 throw new BusinessException("无效的全局回话");
             }
             $user = $tgt->user;
-        } else {
-            if (empty($this->request->input('username'))) {
-                $data = $this->validReq($this->request->all(), [
-                    'redirect_url' => 'required',
-                    'service_id'   => 'required',
+            $st = $this->getServiceTicket($tgt_id, $user->uid, $data['service_id']);
+            if ($st->used <= 0) {
+                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
+                    'msg'          => "service ticket次数已用完, 请重新登录",
+                    'redirect_url' => $data['redirect_url'],
+                    'service_id'   => $data['service_id'],
                 ]);
-                $this->setCacheServiceId($data['service_id']);
-                $this->setCacheRedirectUrl($data['redirect_url']);
-                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'));
+            }
+            $table = $st->getTable();
+            Db::update("update $table set used=used-1 where used>0 and st_id={$st->st_id};");
+        } else {
+            if ($this->request->input('is_cas_login')) {
+                $user_data = $this->validReq($this->request->all(), [
+                    'username' => 'required',
+                    'password' => 'required',
+                ]);
             } else {
-                $this->setServiceId($this->mustPullCacheServiceId());
-                $this->setRedirectUrl($this->mustPullCacheRedirectUrl());
+                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
+                    'msg'          => $this->request->input('msg'),
+                    'redirect_url' => $data['redirect_url'],
+                    'service_id'   => $data['service_id'],
+                ]);
             }
 
-            $data = $this->validReq($this->request->all(), [
-                'username' => 'required',
-                'password' => 'required',
-            ]);
-            $user = TsUser::updateOrCreate([
-                'username' => $data['username'],
-            ], [
-                'password' => $data['password'],
-            ]);
+            $user = $this->createOrCheckUser($user_data['username'], $user_data['password']);
             if (empty($user)) {
                 throw new BusinessException("用户不存在");
             }
@@ -115,26 +96,64 @@ class ServerController extends AbstractController
             if (empty($tgt)) {
                 throw new BusinessException("全局令牌创建失败");
             }
+
+            $st = $this->getServiceTicket($tgt->tgt_id, $user->uid, $data['service_id']);
+            $st->update([
+                'used' => $this->getCasMaxUseNum(),
+            ]);
         }
 
-        $service = TsService::findOrFail($this->getServiceId());
-        $st = TsServiceTicket::updateOrCreate([
-            'tgt_id'     => $tgt->tgt_id,
-            'uid'        => $user->uid,
-            'service_id' => $service->service_id,
-        ], [
-            'used'       => 2, // 重置次数
-            'expires_in' => date('Y-m-d H:i:s', strtotime('+3 day')),
-            'validate'   => TsServiceTicket::VALIDATE_YES,
-        ]);
+        $service = TsService::findOrFail($data['service_id']);
 
         $this->session->set('tgt_id', $tgt->tgt_id);
 
         return $this->getUrlRedirector()->redirect($service->url, [
             'st'           => $st->st_id,
-            'redirect_url' => $this->getRedirectUrl(),
+            'redirect_url' => $data['redirect_url'],
         ]);
     }
+    /**
+     *
+     */
+    protected function createOrCheckUser($username, $password) {
+        $user = TsUser::where('username', $username)->first();
+        if (empty($user)) {
+            var_dump($username);
+            $user = TsUser::create([
+                'username' => $username,
+                'password' => $password,
+            ]);
+        } else {
+            if ($user->password != $password) {
+                throw new \App\Exception\BusinessException("账号密码不对");
+            }
+        }
+        return $user;
+    }
+    /**
+     * 获取service ticket.
+     * @return TsServiceTicket
+     */
+    private function getServiceTicket($tgt_id, $uid, $service_id) {
+        $st = TsServiceTicket::firstOrCreate([
+            'tgt_id'     => $tgt_id,
+            'uid'        => $uid,
+            'service_id' => $service_id,
+        ], [
+            'used'       => $this->getCasMaxUseNum(),
+            'expires_in' => date('Y-m-d H:i:s', strtotime('+3 day')),
+            'validate'   => TsServiceTicket::VALIDATE_YES,
+        ]);
+        return $st;
+    }
+    /**
+     * 获取最大认证次数.
+     * @return int
+     */
+    private function getCasMaxUseNum() {
+        return config('cas.cas_max_used_num', 3);
+    }
+
     /**
      * 用户信息.
      */
@@ -144,13 +163,7 @@ class ServerController extends AbstractController
         ]);
         $st = TsServiceTicket::where([
             'st_id' => $data['st'],
-        ])
-            ->where('used', '>', 0)
-            ->first();
-        if (empty($st)) {
-            throw new BusinessException("凭证已失效");
-        }
-        $st->decrement('used');
+        ])->first();
         $user = TsUser::findOrFail($st->uid);
         return [
             'uid'      => $user->uid,
@@ -161,14 +174,46 @@ class ServerController extends AbstractController
      * 退出登录.
      */
     public function cas_logout() {
+        $data = $this->validReq($this->request->all(), [
+            'service_id' => 'required',
+        ]);
         $tgt_id = $this->session->get('tgt_id');
         if (empty($tgt_id)) {
-            throw new BusinessException("退出登录缺少凭证"); 
+            throw new BusinessException("退出登录缺少凭证");
         }
         $tgt = TsTgt::findOrFail($tgt_id);
-        $services = TsService::where('uid', $tgt->uid)->get();
-        foreach ($services as $service) {
-            file_get_contents($service->logout_url."?uid={$service->uid}");
+        $st_list = $tgt->st;
+        $rtn[] = '清除所有client的登录状态';
+        foreach ($st_list as $st) {
+            $service = $st->service;
+            $rtn[] = "client $service->service_id cas剩余次数 $st->used/" . $this->getCasMaxUseNum();
+            if ($st->service_id == $data['service_id']) {
+                $rtn[] = "client $service->service_id session 是自己负责清除的";
+                // 主动退出的客户端, session已在请求的时候清除过了.
+                continue;
+            }
+            $ok = $this->logout_service($service->logout_url, $st->st_id);
+            $rtn[] = "client $service->service_id session 清除结果 $ok";
         }
+        $rtn[] = "1成功, 0失败";
+        $rtn[] = "请手动返回";
+        return $this->response->raw(implode("\n", $rtn));
+    }
+
+    /**
+     * 退出各个客户端的service.
+     * @param $logout_url
+     * @param $st
+     * @return bool
+     */
+    private function logout_service($logout_url, $st) {
+        try {
+            $res = file_get_contents($logout_url . "?st=$st");
+            if (empty($res)) {
+                return true;
+            }
+        } catch (\Throwable $e) {
+        }
+        return false;
     }
 }

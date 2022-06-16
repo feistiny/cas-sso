@@ -9,6 +9,7 @@
 namespace App\Helper;
 
 use App\Trait\UserSessionTrait;
+use App\Trait\UtilTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -33,20 +34,22 @@ abstract class AbstractUrlRedirector
 
     /**
      * CAS认证跳转.
+     * @param string $msg 提示语
      * @return \Hyperf\HttpServer\Response
      */
-    public function CASRedirect() {
+    public function CASRedirect($msg) {
         $url = config('cas.cas_auto_login_url');
-        $service_id = $this->mustGetCacheServiceId();
-        $redirect_url = $this->mustGetCacheRedirectUrl();
+        $service_id = $this->getServiceIdByDomain();
+        $redirect_url = $this->mayGetCacheRedirectUrl();
         $auth_data['redirect_url'] = $redirect_url;
         $auth_data['service_id'] = $service_id;
+        $auth_data['msg'] = $msg;
         return $this->redirect($url, $auth_data);
     }
 
     /**
-     * 获取
+     * 获取get重定向器.
      */
-    public function get() {
+    public function getUrlGetRedirector() {
     }
 }

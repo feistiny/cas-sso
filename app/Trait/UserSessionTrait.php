@@ -6,9 +6,12 @@ use App\Exception\BusinessException;
 use App\Exception\CASAuthException;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Contract\RequestInterface;
 
 trait UserSessionTrait
 {
+    use ClientTrait;
+    
     #[Inject]
     protected SessionInterface $session;
 
@@ -24,9 +27,7 @@ trait UserSessionTrait
     public function mustGetUid() {
         $uid = $this->session->get('uid');
         if (empty($uid)) {
-            $err = new CASAuthException("CAS没有授权");
-            $err->withServiceId($this->mustGetCacheServiceId());
-            throw $err;
+            throw new CASAuthException("执行需要授权的操作,需要CAS授权");
         }
         return $uid;
     }
@@ -83,6 +84,17 @@ trait UserSessionTrait
         $redirect_url = $this->session->get('redirect_url');
         if (empty($redirect_url)) {
             throw new BusinessException("强制获取缓存的redirect_url失败");
+        }
+        return $redirect_url;
+    }
+    /**
+     * 获取redirect_url.
+     * @return int
+     */
+    public function mayGetCacheRedirectUrl() {
+        $redirect_url = $this->session->get('redirect_url');
+        if (empty($redirect_url)) {
+            return $this->getClientIndexUrl();
         }
         return $redirect_url;
     }

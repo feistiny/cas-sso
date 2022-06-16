@@ -14,6 +14,7 @@ namespace App\Controller;
 use App\Middleware\ClientAuthMiddleware;
 use App\Model\Tc1Info;
 use App\Model\Tc1ServiceTicket;
+use App\Trait\ClientTrait;
 use App\Trait\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\AutoController;
@@ -23,10 +24,18 @@ use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 abstract class ClientController extends AbstractController
 {
-    protected function mustGetServiceId() {
-        return $this->__service_id; 
+    use ClientTrait;
+
+    protected function getClientTitle() {
+        return 'client' . $this->getServiceIdByDomain();
     }
-    
+    protected function getBaseUrl() {
+        return $this->getClientMapValueByKey('client_base_url_map');
+    }
+    protected function mustGetServiceId() {
+        return $this->getServiceIdByDomain();
+    }
+
     #[RequestMapping(path: "index", methods: "get")]
     public function index() {
         if ($uid = $this->mayGetUid()) {
@@ -38,24 +47,32 @@ abstract class ClientController extends AbstractController
         return $this->render('client_index.tpl', [
             'title'        => $this->getClientTitle().'的首页',
             'service_id'   => $this->mustGetServiceId(),
-            'username'     => $username ?: '',
+            'username'     => $username ?? '',
             'redirect_url' => $this->getSelfUrl("index"),
         ]);
     }
+    /**
+     * 根据st去cas换取用户信息.
+     */
+    private function get_cas_userinfo($st) {
+        $cas_url = config('cas.cas_userinfo_url');
+        $res = file_get_contents($cas_url."?service_id={$this->mustGetServiceId()}&st=$st");
+        $user_info = json_decode($res, true);
+        if (empty($user_info)) {
+            throw new \App\Exception\BusinessException($res);
+        }
+        return $user_info;
+    }
 
     #[Middleware(ClientAuthMiddleware::class)]
+    #[RequestMapping(path: "auth_page", methods: "get")]
     /**
      * 需要登录的页面.
      */
-    public function do_auth_page() {
+    public function auth_page() {
         $uid = $this->mustGetUid();
-        return $this->response->raw("cas授权后, {$this->getClientTitle()}上操作成功! 返回请手动回退.");
+        return $this->response->raw("cas授权后, {$this->getClientTitle()}上操作成功! 返回请手动回退.");;
     }
-
-    /**
-     * 需要授权才能访问的页面.
-     */
-    abstract public function auth_page();
 
     #[RequestMapping(path: "cas_back", methods: "get,post")]
     /**
@@ -73,34 +90,48 @@ abstract class ClientController extends AbstractController
             'st'       => $data['st'],
         ]);
         // 保存用户信息
-        return $this->getUrlRedirector()->redirect($this->mustGetCacheRedirectUrl());
+        return $this->getUrlRedirector()->redirect($this->mayGetCacheRedirectUrl());
     }
     /**
      * 保存cas的授权用户信息.
+     * @param $info
      */
-    protected function cas_back_saveinfo($info) {
-        throw new \App\Exception\BusinessException("客户端需要保存cas授权信息");
-    }
+    abstract protected function cas_back_saveinfo($info);
 
+    #[RequestMapping(path: "async_logout", methods: "get,post")]
     /**
      * 异步退出登录.
      */
-    public function async_logout() {}
-
-    /**
-     * 退出登录.
-     */
-    public function logout() {
-        $this->session->clear();
-        return $this->getUrlRedirector()->redirect(config('cas.cas_logout_url'));
+    public function async_logout() {
+        $data = $this->validReq($this->request->all(), [
+            'st' => 'required',
+        ]);
+        $session_id = $this->getSessionIdByST($data['st']);
+        $this->session->setId($session_id);
+        $this->session->invalidate();
     }
     /**
-     * 根据st去cas换取用户信息.
+     * 根据st获取对应的session_id.
+     * @param $st_id
+     * @return mixed
      */
-    private function get_cas_userinfo($st) {
-        $cas_url = config('cas.cas_userinfo_url');
-        $res = file_get_contents($cas_url."?service_id={$this->mustGetServiceId()}&st=$st");
-        $user_info = json_decode($res, true);
-        return $user_info;
+    protected function getSessionIdByST($st_id) {
+        $service_ticket_class = $this->getClientMapValueByKey('client_service_ticket_class_map');
+        $st = $service_ticket_class::find($st_id);
+        if (empty($st)) {
+            throw new \APP\Exception\BusinessException("没有找到session_id,st_id: $st_id");
+        }
+        $session_id = $st->session_id;
+        if (empty($session_id)) {
+            throw new \APP\Exception\BusinessException("getSessionIdByST session_id is empty, st_id: $st_id");
+        }
+        return $session_id;
+    }
+    #[RequestMapping(path: "logout", methods: "get")]
+    public function logout() {
+        $this->session->clear();
+        return $this->getUrlRedirector()->redirect(config('cas.cas_logout_url'), [
+            'service_id' => $this->getServiceIdByDomain(),
+        ]);
     }
 }

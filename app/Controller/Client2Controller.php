@@ -19,29 +19,16 @@ use App\Model\Tc2ServiceTicket;
 use App\Trait\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\AutoController;
+use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
-#[AutoController]
+#[Controller]
 class Client2Controller extends ClientController
 {
-    protected $service_id = 2;
-
-    protected function getBaseUrl() {
-        return 'https://9502.lzf.itbtx.cn/client2/';
-    }
-    protected function getClientTitle() {
-        return 'client2';
-    }
-
-    #[Middleware(ClientAuthMiddleware::class)]
     /**
-     * 需要登录的页面.
+     * @inheritDoc
      */
-    public function auth_page() {
-        return $this->do_auth_page();
-    }
-
     protected function cas_back_saveinfo($info) {
         Tc2Info::updateOrCreate([
             'info_id' => $info['uid'],

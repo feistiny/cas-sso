@@ -13,7 +13,10 @@ namespace App\Controller;
 
 use App\Helper\AbstractUrlRedirector;
 use App\Helper\UrlGetRedirector;
+use App\Model\TsServiceTicket;
 use App\Model\TsUser;
+use App\Trait\UtilTrait;
+use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Annotation\AutoController;
@@ -22,6 +25,14 @@ use Hyperf\View\RenderInterface;
 #[AutoController]
 class IndexController extends AbstractController
 {
+    public function index() {
+        $sql =<<<SQL
+update ts_service_ticket set used=used-1 where st_id=1
+SQL;
+        Db::update($sql);
+        return $this->getServiceIdByDomain();
+    } 
+    
     public function url() {
         $urlRedirector = $this->getUrlRedirector();
         return $urlRedirector->redirect('http://101.43.82.144:9500', [
