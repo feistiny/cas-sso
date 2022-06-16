@@ -196,7 +196,9 @@ class ServerController extends AbstractController
             $rtn[] = "client $service->service_id session 清除结果 ".($ok ? '成功' : '失败');
         }
         $rtn[] = "请手动返回";
-        return $this->response->raw(implode("\n", $rtn));
+        return $this->render('info.tpl', [
+            'infos' => $rtn,
+        ]);
     }
 
     /**

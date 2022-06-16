@@ -66,7 +66,11 @@ abstract class ClientController extends AbstractController
      */
     public function auth_page() {
         $uid = $this->mustGetUid();
-        return $this->response->raw("cas授权后, {$this->getClientTitle()}上操作成功! 返回请手动回退.");;
+        return $this->render('info.tpl', [
+            'infos' => [
+                "cas授权后, {$this->getClientTitle()}上操作成功! 返回请手动回退." 
+            ],
+        ]);
     }
 
     #[RequestMapping(path: "cas_back", methods: "get,post")]

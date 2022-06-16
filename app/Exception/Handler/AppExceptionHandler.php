@@ -15,6 +15,7 @@ use App\Exception\BusinessException;
 use Hyperf\Contract\StdoutLoggerInterface;
 use Hyperf\ExceptionHandler\ExceptionHandler;
 use Hyperf\HttpMessage\Stream\SwooleStream;
+use Hyperf\View\RenderInterface;
 use Psr\Http\Message\ResponseInterface;
 use Throwable;
 
@@ -27,9 +28,9 @@ class AppExceptionHandler extends ExceptionHandler
     public function handle(Throwable $throwable, ResponseInterface $response)
     {
         if ($throwable instanceof BusinessException) {
-            return $response
-                ->withAddedHeader('content-type', 'text/html; charset=utf-8')
-                ->withBody(new SwooleStream($throwable->getMessage()));
+            return make(RenderInterface::class)->render('exception.tpl', [
+                'err' => $throwable->getMessage(),
+            ]);
         }
         $this->logger->error(sprintf('%s[%s] in %s', $throwable->getMessage(), $throwable->getLine(), $throwable->getFile()));
         $this->logger->error($throwable->getTraceAsString());
