@@ -15,7 +15,7 @@ use App\Middleware\ClientAuthMiddleware;
 use App\Model\Tc1Info;
 use App\Model\Tc1ServiceTicket;
 use App\Model\Tc2Info;
-use App\Trait\ValidatorTrait;
+use App\Traits\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\AutoController;
 use Hyperf\HttpServer\Annotation\Controller;

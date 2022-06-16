@@ -6,12 +6,13 @@
  * @author: lzf
  */
 
-namespace App\Trait;
+namespace App\Traits;
 
 
 use App\Exception\BusinessException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;
+use function config;
 
 trait ClientTrait
 {

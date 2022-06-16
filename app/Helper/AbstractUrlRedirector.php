@@ -8,7 +8,7 @@
 
 namespace App\Helper;
 
-use App\Trait\UserSessionTrait;
+use App\Traits\UserSessionTrait;
 use App\Trait\UtilTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;

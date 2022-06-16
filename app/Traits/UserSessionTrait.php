@@ -1,9 +1,10 @@
 <?php
 
-namespace App\Trait;
+namespace App\Traits;
 
 use App\Exception\BusinessException;
 use App\Exception\CASAuthException;
+use App\Traits\ClientTrait;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Contract\RequestInterface;

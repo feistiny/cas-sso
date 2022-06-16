@@ -9,8 +9,8 @@
 namespace App\Middleware;
 
 use App\Helper\UrlRedirectorTrait;
-use App\Trait\UserSessionTrait;
-use App\Trait\ValidatorTrait;
+use App\Traits\UserSessionTrait;
+use App\Traits\ValidatorTrait;
 use Hyperf\Contract\SessionInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface as HttpResponse;
 use Psr\Container\ContainerInterface;

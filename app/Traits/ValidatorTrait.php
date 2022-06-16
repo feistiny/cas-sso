@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Trait;
+namespace App\Traits;
 
 use App\Exception\BusinessException;
 use Hyperf\Di\Annotation\Inject;

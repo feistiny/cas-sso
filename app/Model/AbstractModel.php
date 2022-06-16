@@ -12,7 +12,7 @@ declare(strict_types=1);
 namespace App\Model;
 
 use App\Helper\ModelValidator;
-use App\Trait\ValidatorTrait;
+use App\Traits\ValidatorTrait;
 use Hyperf\DbConnection\Model\Model as BaseModel;
 
 abstract class AbstractModel extends BaseModel
