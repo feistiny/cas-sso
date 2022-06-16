@@ -26,11 +26,7 @@ use Hyperf\View\RenderInterface;
 class IndexController extends AbstractController
 {
     public function index() {
-        $sql =<<<SQL
-update ts_service_ticket set used=used-1 where st_id=1
-SQL;
-        Db::update($sql);
-        return $this->getServiceIdByDomain();
+        return 'welcome';
     } 
     
     public function url() {

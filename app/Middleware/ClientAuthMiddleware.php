@@ -18,7 +18,7 @@ class ClientAuthMiddleware extends AbstractMiddleware
         try {
             return $handler->handle($request);
         } catch (CASAuthException $e) {
-            $redirector = $this->getUrlRedirector();
+            $redirector = $this->getUrlPostRedirector();
             return $redirector->CASRedirect($e->getMessage());
         }
     }

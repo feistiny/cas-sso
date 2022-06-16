@@ -17,9 +17,10 @@ trait UrlRedirectorTrait
      */
     protected function getUrlRedirector() {
         $redirect_type = $this->request->input('redirect_type', 'get');
-        $rtn = make(UrlGetRedirector::class);
         if ($redirect_type == 'post') {
             $rtn = make(UrlPostRedirector::class);
+        } else {
+            $rtn = make(UrlGetRedirector::class);
         }
         return $rtn;
     }

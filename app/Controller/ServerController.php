@@ -61,7 +61,7 @@ class ServerController extends AbstractController
             $user = $tgt->user;
             $st = $this->getServiceTicket($tgt_id, $user->uid, $data['service_id']);
             if ($st->used <= 0) {
-                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
+                return $this->getUrlPostRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
                     'msg'          => "service ticket次数已用完, 请重新登录",
                     'redirect_url' => $data['redirect_url'],
                     'service_id'   => $data['service_id'],
@@ -76,7 +76,7 @@ class ServerController extends AbstractController
                     'password' => 'required',
                 ]);
             } else {
-                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
+                return $this->getUrlPostRedirector()->redirect($this->getSelfUrl('server/cas_login_form'), [
                     'msg'          => $this->request->input('msg'),
                     'redirect_url' => $data['redirect_url'],
                     'service_id'   => $data['service_id'],
@@ -107,7 +107,7 @@ class ServerController extends AbstractController
 
         $this->session->set('tgt_id', $tgt->tgt_id);
 
-        return $this->getUrlRedirector()->redirect($service->url, [
+        return $this->getUrlPostRedirector()->redirect($service->url, [
             'st'           => $st->st_id,
             'redirect_url' => $data['redirect_url'],
         ]);
