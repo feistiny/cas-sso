@@ -10,6 +10,7 @@ namespace App\Helper;
 
 use Hyperf\HttpMessage\Stream\SwooleStream;
 use Hyperf\HttpServer\Response;
+use Hyperf\View\RenderInterface;
 
 class UrlPostRedirector extends AbstractUrlRedirector
 {
@@ -18,27 +19,9 @@ class UrlPostRedirector extends AbstractUrlRedirector
      * @return Response
      */
     public function redirect($url, $data = []) {
-        $input_str = '';
-        foreach ($data as $name => $value) {
-            $input_str .= <<<HTML
-<input type='hidden' name='{$name}' value='{$value}'>
-HTML;
-        }
-
-        $html = <<<HTML
-<html>
-<body>
-<form name="submitForm" action="$url" method="post">
-{$input_str}
-</form>
-</body>
-<script>window.document.submitForm.submit();</script>
-</html>
-HTML;
-
-        $response = $this->response
-            ->withAddedHeader('content-type', 'text/html; charset=utf-8')
-            ->withBody(new SwooleStream($html));
-        return $response;
+        return make(RenderInterface::class)->render('redirect_form.tpl', [
+            'url' => $url,
+            'data' => $data,
+        ]);
     }
 }
