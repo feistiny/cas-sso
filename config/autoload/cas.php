@@ -29,7 +29,7 @@ $client_service_ticket_class_map = [
     $client2_service_id => Tc2ServiceTicket::class,
 ];
 return [
-    'cas_max_used_num'                => 1, // service ticket 最大次数
+    'cas_max_used_num'                => 3, // service ticket 最大次数
     'cas_auto_login_url'              => 'https://9500.lzf.itbtx.cn/server/cas_auth',
     'cas_userinfo_url'                => 'https://9500.lzf.itbtx.cn/server/user_info',
     'cas_logout_url'                  => 'https://9500.lzf.itbtx.cn/server/cas_logout',
