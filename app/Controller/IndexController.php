@@ -22,7 +22,6 @@ use Hyperf\View\RenderInterface;
 #[AutoController]
 class IndexController extends AbstractController
 {
-
     public function url() {
         $urlRedirector = $this->getUrlRedirector();
         return $urlRedirector->redirect('http://101.43.82.144:9500', [

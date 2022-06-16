@@ -47,4 +47,12 @@ abstract class AbstractController
     protected function render($template, $data = [], $config = []) {
         return $this->render->render($template, $data, $config); 
     }
+
+    protected function getBaseUrl() {
+        throw new \LogicException("子类需要继承此方法"); 
+    }
+    protected function getSelfUrl($sub_url) {
+        $base_url = $this->getBaseUrl();
+        return "$base_url$sub_url";
+    }
 }

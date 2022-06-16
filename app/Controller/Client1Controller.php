@@ -13,6 +13,7 @@ namespace App\Controller;
 
 use App\Middleware\Client1AuthMiddleware;
 use App\Model\Tc1Info;
+use App\Model\Tc1ServiceTicket;
 use App\Model\Tc2Info;
 use App\Trait\ValidatorTrait;
 use Hyperf\Di\Annotation\Inject;
@@ -21,22 +22,24 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 #[AutoController]
-class Client1Controller extends ClientController
+class Client1Controller extends AbstractController
 {
     protected $service_id = 1;
 
-    /**
-     * 获取完整的跳转地址.
-     */
-    private function getClientUrl($sub_url) {
-        return "https://9501.lzf.itbtx.cn/$sub_url";
+    protected function getBaseUrl() {
+        return 'https://9501.lzf.itbtx.cn/';
     }
 
     public function index() {
+        if ($uid = $this->mayGetUid()) {
+            $user = Tc1Info::findOrFail($uid);
+            $username = $user->username;
+        }
         return $this->render('client_index.tpl', [
-            'title' => 'client1的首页',
-            'service_id' => $this->service_id,
-            'redirect_url' => $this->getClientUrl("client1/auth_page"),
+            'title'        => 'client1的首页',
+            'service_id'   => $this->service_id,
+            'username'     => $username,
+            'redirect_url' => $this->getSelfUrl("client1/index"),
         ]);
     }
 
@@ -45,10 +48,8 @@ class Client1Controller extends ClientController
      * 需要登录的页面.
      */
     public function auth_page() {
-        return [
-            'auth_page',
-            'uid' => $this->getUid(),
-        ];
+        $uid = $this->mustGetUid();
+        return ["授权后, 操作成功!"];
     }
     /**
      * cas返回时,统一
@@ -61,9 +62,14 @@ class Client1Controller extends ClientController
         $user_info = $this->get_cas_userinfo($data['st']);
         $this->session->set('uid', $user_info['uid']);
         Tc1Info::updateOrCreate([
-            'info_id'    => $user_info['uid'],
+            'info_id' => $user_info['uid'],
         ], [
-            'username'   => $user_info['username'],
+            'username' => $user_info['username'],
+        ]);
+        Tc1ServiceTicket::updateOrCreate([
+            'st_id' => $data['st'],
+        ], [
+            'validate'   => 1,
             'session_id' => $this->session->getId(),
         ]);
         // 保存用户信息

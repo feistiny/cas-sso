@@ -23,27 +23,52 @@ use Hyperf\HttpServer\Annotation\AutoController;
 #[AutoController]
 class ServerController extends AbstractController
 {
+    protected function getBaseUrl() {
+        return "https://9500.lzf.itbtx.cn/";
+    }
+
+    private $__service_id = 0;
+    private function getServiceId() {
+        $service_id = $this->__service_id;
+        if (empty($service_id)) {
+            throw new \App\Exception\BusinessException("service_id强制获取失败");
+        }
+        return $service_id;
+    }
+    private function setServiceId($service_id) {
+        if (empty($service_id)) {
+            throw new BusinessException("不能设置空的service_id");
+        }
+        $this->__service_id = $service_id;
+    }
+    private $__redirect_url;
+    private function getRedirectUrl() {
+        $redirect_url = $this->__redirect_url;
+        if (empty($redirect_url)) {
+            throw new \App\Exception\BusinessException("redirect_url强制获取失败");
+        }
+        return $redirect_url;
+    }
+    private function setRedirectUrl($redirect_url) {
+        if (empty($redirect_url)) {
+            throw new BusinessException("不能设置空的redirect_url");
+        }
+        $this->__redirect_url = $redirect_url;
+    }
+
     public function cas_login_form() {
-        $data = $this->validReq($this->request->all(), [
-            'redirect_url' => 'required',
-            'service_id'   => 'required',
-        ]);
-        return $this->render('server_login.tpl', [
-            'service_id'   => $data['service_id'],
-            'redirect_url' => $data['redirect_url'],
-        ]);
+        $this->mustGetCacheRedirectUrl();
+        $this->mustGetCacheServiceId();
+        return $this->render('server_login.tpl');
     }
     /**
      * 注册/登录.
      */
     public function cas_auth() {
-        $data = $this->validReq($this->request->all(), [
-            'redirect_url' => 'required',
-            'service_id'   => 'required',
-        ]);
-        $service = TsService::findOrFail($data['service_id']);
-
         if ($tgt_id = $this->session->get('tgt_id')) {
+            $this->setServiceId($this->mustGetCacheServiceId());
+            $this->setRedirectUrl($this->mustGetCacheRedirectUrl());
+            // 有全局会话
             // 其他应用来了, 直接登录
             $tgt = TsTgt::find($tgt_id);
             if (empty($tgt)) {
@@ -51,9 +76,22 @@ class ServerController extends AbstractController
             }
             $user = $tgt->user;
         } else {
+            if (empty($this->request->input('username'))) {
+                $data = $this->validReq($this->request->all(), [
+                    'redirect_url' => 'required',
+                    'service_id'   => 'required',
+                ]);
+                $this->setCacheServiceId($data['service_id']);
+                $this->setCacheRedirectUrl($data['redirect_url']);
+                return $this->getUrlRedirector()->redirect($this->getSelfUrl('server/cas_login_form'));
+            } else {
+                $this->setServiceId($this->mustGetCacheServiceId());
+                $this->setRedirectUrl($this->mustGetCacheRedirectUrl());
+            }
+
             $data = $this->validReq($this->request->all(), [
-                'username'     => 'required',
-                'password'     => 'required',
+                'username' => 'required',
+                'password' => 'required',
             ]);
             $user = TsUser::updateOrCreate([
                 'username' => $data['username'],
@@ -73,7 +111,8 @@ class ServerController extends AbstractController
                 throw new BusinessException("全局令牌创建失败");
             }
         }
-        
+
+        $service = TsService::findOrFail($this->getServiceId());
         $st = TsServiceTicket::updateOrCreate([
             'tgt_id'     => $tgt->tgt_id,
             'uid'        => $user->uid,
@@ -87,8 +126,8 @@ class ServerController extends AbstractController
         $this->session->set('tgt_id', $tgt->tgt_id);
 
         return $this->getUrlRedirector()->redirect($service->url, [
-            'st' => $st->st_id,
-            'redirect_url' => $data['redirect_url'],
+            'st'           => $st->st_id,
+            'redirect_url' => $this->getRedirectUrl(),
         ]);
     }
     /**

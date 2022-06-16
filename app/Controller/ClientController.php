@@ -19,6 +19,6 @@ use Hyperf\HttpServer\Annotation\AutoController;
 use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
-class ClientController extends AbstractController
+abstract class ClientController extends AbstractController
 {
 }

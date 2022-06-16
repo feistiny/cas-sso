@@ -20,9 +20,13 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\Validation\Contract\ValidatorFactoryInterface;
 
 #[AutoController]
-class Client2Controller extends ClientController
+class Client2Controller extends AbstractController
 {
     protected $service_id = 2;
+
+    protected function getBaseUrl() {
+        return 'https://9502.lzf.itbtx.cn/';
+    }
 
     #[Middleware(Client1AuthMiddleware::class)]
     /**
@@ -31,7 +35,7 @@ class Client2Controller extends ClientController
     public function auth_page() {
         return [
             'auth_page',
-            'uid' => $this->getUid(),
+            'uid' => $this->mustGetUid(),
         ];
     }
     /**

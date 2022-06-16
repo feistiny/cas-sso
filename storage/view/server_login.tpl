@@ -8,7 +8,6 @@
     <div>
       密码<input type="text" name="password">
     </div>
-    <input type="hidden" value="{$redirect_url}">
     <button type="submit">注册/登录</button>
   </form>
 {/block}
