@@ -56,12 +56,7 @@ abstract class ClientController extends AbstractController
      */
     private function get_cas_userinfo($st) {
         $cas_url = config('cas.cas_userinfo_url');
-        $res = file_get_contents($cas_url."?service_id={$this->mustGetServiceId()}&st=$st");
-        $user_info = json_decode($res, true);
-        if (empty($user_info)) {
-            throw new \App\Exception\BusinessException($res);
-        }
-        return $user_info;
+        return $this->rpc_request($cas_url."?service_id={$this->mustGetServiceId()}&st=$st");
     }
 
     #[Middleware(ClientAuthMiddleware::class)]
@@ -108,7 +103,7 @@ abstract class ClientController extends AbstractController
         ]);
         $session_id = $this->getSessionIdByST($data['st']);
         $this->session->setId($session_id);
-        $this->session->invalidate();
+        $this->clearCurrentSession($this->session);
     }
     /**
      * 根据st获取对应的session_id.
@@ -129,9 +124,19 @@ abstract class ClientController extends AbstractController
     }
     #[RequestMapping(path: "logout", methods: "get")]
     public function logout() {
-        $this->session->clear();
+        $this->clearCurrentSession($this->session);
         return $this->getUrlRedirector()->redirect(config('cas.cas_logout_url'), [
             'service_id' => $this->getServiceIdByDomain(),
         ]);
+    }
+    /**
+     * 根据session_id清楚session.
+     * @param \Hyperf\Contract\SessionInterface $session
+     */
+    protected function clearCurrentSession($session) {
+        $bool = $session->invalidate();
+        if (empty($bool)) {
+            throw new \App\Exception\BusinessException("session清除失败, session_id: " . $session->getId());
+        }
     }
 }

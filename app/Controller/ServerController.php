@@ -193,9 +193,8 @@ class ServerController extends AbstractController
                 continue;
             }
             $ok = $this->logout_service($service->logout_url, $st->st_id);
-            $rtn[] = "client $service->service_id session 清除结果 $ok";
+            $rtn[] = "client $service->service_id session 清除结果 ".($ok ? '成功' : '失败');
         }
-        $rtn[] = "1成功, 0失败";
         $rtn[] = "请手动返回";
         return $this->response->raw(implode("\n", $rtn));
     }
@@ -207,12 +206,9 @@ class ServerController extends AbstractController
      * @return bool
      */
     private function logout_service($logout_url, $st) {
-        try {
-            $res = file_get_contents($logout_url . "?st=$st");
-            if (empty($res)) {
-                return true;
-            }
-        } catch (\Throwable $e) {
+        $res = $this->rpc_request($logout_url . "?st=$st");
+        if (empty($res)) {
+            return true;
         }
         return false;
     }

@@ -56,4 +56,20 @@ abstract class AbstractController
         $base_url = $this->getBaseUrl();
         return "$base_url$sub_url";
     }
+    protected function rpc_request($url) {
+        try {
+            $resp_str = file_get_contents($url);
+        } catch (\Throwable $e) {
+            throw new \App\Exception\BusinessException("rpc网络请求异常, 请求地址: $url");            
+        }
+        $resp_arr = json_decode($resp_str, true);
+        if (empty($resp_arr)) {
+            if (! empty($resp_str)) {
+                // 可能是 throw 返回的字符串
+                throw new \App\Exception\BusinessException($resp_str);
+            }
+        } 
+        // 正常业务是返回的数组
+        return $resp_arr;
+    }
 }
